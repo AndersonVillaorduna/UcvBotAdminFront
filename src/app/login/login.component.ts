@@ -9,7 +9,7 @@ import { HttpClient } from '@angular/common/http';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink]
+  imports: [CommonModule, FormsModule, RouterLink],
 })
 export class LoginComponent {
   userName: string = '';
@@ -27,26 +27,28 @@ export class LoginComponent {
 
     this.isLoading = true;
 
-    this.http.post<any>('http://localhost:5000/api/admins/login', {
-      v_userName: this.userName,
-      v_password: this.password
-    }).subscribe({
-      next: (response) => {
-        this.isLoading = false;
-        this.message = response.mensaje;
-        this.messageType = 'success';
-        console.log('Usuario logueado:', response.user);
-        if (typeof window !== 'undefined' && localStorage) {
+    this.http
+      .post<any>('https://ucvbotbackend.onrender.com/api/admins/login', {
+        v_userName: this.userName,
+        v_password: this.password,
+      })
+      .subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          this.message = response.mensaje;
+          this.messageType = 'success';
+          console.log('Usuario logueado:', response.user);
+          if (typeof window !== 'undefined' && localStorage) {
             localStorage.setItem('usuarioAdmin', JSON.stringify(response.user));
-        }
-        this.router.navigate(['/dashboard']);
-      },
-      error: (error) => {
-        this.isLoading = false;
-        this.message = error.error.mensaje || 'Error de conexión';
-        this.messageType = 'error';
-      }
-    });
+          }
+          this.router.navigate(['/dashboard']);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.message = error.error.mensaje || 'Error de conexión';
+          this.messageType = 'error';
+        },
+      });
   }
 
   addCharacter(char: string) {
@@ -62,7 +64,4 @@ export class LoginComponent {
   clearInput() {
     this.password = '';
   }
-
-  
-
 }
