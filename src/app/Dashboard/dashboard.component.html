@@ -1,0 +1,53 @@
+<div class="dashboard-container">
+    <aside class="sidebar">
+      <div class="logo-section">
+        <img src="assets/images/logo-_botucv.png" alt="UCV Bot" class="sidebar-logo" />
+        <h2 class="brand-title">UCV<span class="brand-accent">//</span>BOT</h2>
+        <!-- Botón para cerrar sesión (logout) -->
+        <button 
+          class="logout-button"
+          (click)="logout()"
+          style="margin-top: 16px; width: 100%; background: #e74c3c; color: #fff;"
+        >
+          Cerrar sesión
+        </button>
+      </div>
+    </aside>
+  
+    <main class="dashboard-main">
+      <div class="tabs">
+        <button [class.active]="activeTab==='buscar'" (click)="activeTab='buscar'">🔍 Buscar Alumno</button>
+        <button [class.active]="activeTab==='pregunta'" (click)="activeTab='pregunta'">✏️ Subir Pregunta</button>
+      </div>
+  
+      <div class="tab-content">
+        <!-- TAB: BUSCAR ALUMNO -->
+        <div *ngIf="activeTab==='buscar'" class="section animate-in">
+          <h2>Buscar estudiante</h2>
+          <input type="text" placeholder="Nombre o usuario..." [(ngModel)]="searchTerm" class="search-input"/>
+          <div *ngFor="let estudiante of filteredStudents" class="student-card">
+            <h3>{{ estudiante.nombre }}</h3>
+            <p>Nivel: 
+              <span class="nivel" [ngClass]="estudiante.nivel.toLowerCase()">
+                {{ estudiante.nivel }}
+              </span>
+            </p>
+            <p>Progreso estimado: <strong>{{ estudiante.progreso }}%</strong></p>
+          </div>
+
+          <div *ngIf="searchTerm && !filteredStudents" class="not-found">No se encontró el estudiante.</div>
+        </div>
+  
+        <!-- TAB: SUBIR nombre -->
+        <div *ngIf="activeTab==='pregunta'" class="section animate-in">
+          <h2>Subir pregunta</h2>
+          <div class="upload-form">
+            <input type="text" placeholder="Título de la pregunta" [(ngModel)]="preguntaTitulo"/>
+            <button class="upload-btn" (click)="subirPregunta()">Subir pregunta</button>
+            <p class="msg" *ngIf="mensaje">{{ mensaje }}</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
