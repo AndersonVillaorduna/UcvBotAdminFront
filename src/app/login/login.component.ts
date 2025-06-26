@@ -45,8 +45,44 @@ export class LoginComponent {
         },
         error: (error) => {
           this.isLoading = false;
-          this.message = error.error.mensaje || 'Error de conexión';
-          this.messageType = 'error';
+          let messageToDisplay = 'Error de conexión';
+          let typeOfMessage: 'success' | 'error' = 'error';
+
+          // Check if the error object contains the success message in its body
+          if (
+            error &&
+            typeof error.error === 'object' &&
+            error.error !== null &&
+            error.error.mensaje === 'Login exitoso'
+          ) {
+            messageToDisplay = error.error.mensaje;
+            typeOfMessage = 'success'; // Treat as success if the message is 'Login exitoso'
+            // Also, proceed with success actions if this is the case
+            if (typeof window !== 'undefined' && localStorage) {
+              localStorage.setItem(
+                'usuarioAdmin',
+                JSON.stringify(error.error.user)
+              ); // Assuming user is also in error.error
+            }
+            this.router.navigate(['/dashboard']);
+          } else if (
+            error &&
+            typeof error.error === 'object' &&
+            error.error !== null &&
+            error.error.mensaje
+          ) {
+            // Use the error message from the backend if available
+            messageToDisplay = error.error.mensaje;
+          } else if (error && typeof error.error === 'string') {
+            // If error.error is a string, use it directly
+            messageToDisplay = error.error;
+          } else if (error && error.message) {
+            // Fallback to error.message for generic HttpClient errors
+            messageToDisplay = error.message;
+          }
+
+          this.message = messageToDisplay;
+          this.messageType = typeOfMessage;
         },
       });
   }
