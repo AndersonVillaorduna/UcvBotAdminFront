@@ -3,6 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import {
+  trigger,
+  transition,
+  style,
+  animate,
+} from '@angular/animations';
 
 @Component({
   selector: 'app-login',
@@ -10,6 +16,13 @@ import { HttpClient } from '@angular/common/http';
   styleUrls: ['./login.component.scss'],
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
+  animations: [
+    trigger('fadeOut', [
+      transition('in => out', [
+        animate('300ms ease-out', style({ opacity: 0 })),
+      ]),
+    ]),
+  ],
 })
 export class LoginComponent {
   userName: string = '';
@@ -18,6 +31,8 @@ export class LoginComponent {
   showError: boolean = false;
   message: string = '';
   messageType: 'success' | 'error' = 'success';
+
+  fadeOut: 'in' | 'out' = 'in'; // Control de animación
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -37,18 +52,22 @@ export class LoginComponent {
           this.isLoading = false;
           this.message = response.mensaje;
           this.messageType = 'success';
-          console.log('Usuario logueado:', response.user);
+
+          // Guardar en localStorage
           if (typeof window !== 'undefined' && localStorage) {
             localStorage.setItem('usuarioAdmin', JSON.stringify(response.user));
           }
-          this.router.navigate(['/dashboard']);
+
+          // Mostrar mensaje y luego hacer fadeOut
+          setTimeout(() => {
+            this.fadeOut = 'out'; // activa animación
+          }, 300);
         },
         error: (error) => {
           this.isLoading = false;
           let messageToDisplay = 'Error de conexión';
           let typeOfMessage: 'success' | 'error' = 'error';
 
-          // Check if the error object contains the success message in its body
           if (
             error &&
             typeof error.error === 'object' &&
@@ -56,28 +75,23 @@ export class LoginComponent {
             error.error.mensaje === 'Login exitoso'
           ) {
             messageToDisplay = error.error.mensaje;
-            typeOfMessage = 'success'; // Treat as success if the message is 'Login exitoso'
-            // Also, proceed with success actions if this is the case
+            typeOfMessage = 'success';
             if (typeof window !== 'undefined' && localStorage) {
-              localStorage.setItem(
-                'usuarioAdmin',
-                JSON.stringify(error.error.user)
-              ); // Assuming user is also in error.error
+              localStorage.setItem('usuarioAdmin', JSON.stringify(error.error.user));
             }
-            this.router.navigate(['/dashboard']);
+            setTimeout(() => {
+              this.fadeOut = 'out';
+            }, 300);
           } else if (
             error &&
             typeof error.error === 'object' &&
             error.error !== null &&
             error.error.mensaje
           ) {
-            // Use the error message from the backend if available
             messageToDisplay = error.error.mensaje;
-          } else if (error && typeof error.error === 'string') {
-            // If error.error is a string, use it directly
+          } else if (typeof error.error === 'string') {
             messageToDisplay = error.error;
-          } else if (error && error.message) {
-            // Fallback to error.message for generic HttpClient errors
+          } else if (error.message) {
             messageToDisplay = error.message;
           }
 
@@ -85,6 +99,11 @@ export class LoginComponent {
           this.messageType = typeOfMessage;
         },
       });
+  }
+
+  // Se ejecuta cuando termina la animación
+  onFadeOutDone() {
+    this.router.navigate(['/dashboard']);
   }
 
   addCharacter(char: string) {
