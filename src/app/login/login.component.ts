@@ -31,16 +31,19 @@ export class LoginComponent {
   showError: boolean = false;
   message: string = '';
   messageType: 'success' | 'error' = 'success';
-
-  fadeOut: 'in' | 'out' = 'in'; // Control de animación
+  fadeOut: 'in' | 'out' = 'in';
 
   constructor(private http: HttpClient, private router: Router) {}
 
   login() {
     this.showError = !this.userName || !this.password;
-    if (this.showError) return;
+    if (this.showError) {
+      console.warn('Campos vacíos');
+      return;
+    }
 
     this.isLoading = true;
+    console.log('Enviando login...');
 
     this.http
       .post<any>('https://ucvbotbackend.onrender.com/api/admins/login', {
@@ -49,45 +52,36 @@ export class LoginComponent {
       })
       .subscribe({
         next: (response) => {
+          console.log('Respuesta exitosa del backend:', response);
+
           this.isLoading = false;
           this.message = response.mensaje || 'Inicio de sesión exitoso';
           this.messageType = 'success';
 
           if (typeof window !== 'undefined' && localStorage) {
             localStorage.setItem('usuarioAdmin', JSON.stringify(response.user));
+            console.log('Usuario guardado en localStorage:', response.user);
           }
 
-          // Inicia animación de salida
-          this.fadeOut = 'out';
+          this.fadeOut = 'out'; // Activar animación
+          console.log('Animación de salida activada (fadeOut = out)');
         },
         error: (error) => {
+          console.error('Error del backend:', error);
+
           this.isLoading = false;
-          let messageToDisplay = 'Error de conexión';
-          let typeOfMessage: 'success' | 'error' = 'error';
-
-          if (
-            error &&
-            typeof error.error === 'object' &&
-            error.error !== null &&
-            error.error.mensaje
-          ) {
-            messageToDisplay = error.error.mensaje;
-          } else if (typeof error.error === 'string') {
-            messageToDisplay = error.error;
-          } else if (error.message) {
-            messageToDisplay = error.message;
-          }
-
-          this.message = messageToDisplay;
-          this.messageType = typeOfMessage;
+          this.messageType = 'error';
+          this.message = error?.error?.mensaje || error.message || 'Error de conexión';
         },
       });
   }
 
-  // Se ejecuta cuando termina la animación
   onFadeOutDone() {
+    console.log('Animación completada, redirigiendo...');
     if (this.messageType === 'success') {
       this.router.navigate(['/dashboard'], { replaceUrl: true });
+    } else {
+      console.warn('No se redirige porque el login falló');
     }
   }
 
