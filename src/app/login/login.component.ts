@@ -50,18 +50,15 @@ export class LoginComponent {
       .subscribe({
         next: (response) => {
           this.isLoading = false;
-          this.message = response.mensaje;
+          this.message = response.mensaje || 'Inicio de sesión exitoso';
           this.messageType = 'success';
 
-          // Guardar en localStorage
           if (typeof window !== 'undefined' && localStorage) {
             localStorage.setItem('usuarioAdmin', JSON.stringify(response.user));
           }
 
-          // Mostrar mensaje y luego hacer fadeOut
-          setTimeout(() => {
-            this.fadeOut = 'out'; // activa animación
-          }, 300);
+          // Inicia animación de salida
+          this.fadeOut = 'out';
         },
         error: (error) => {
           this.isLoading = false;
@@ -69,20 +66,6 @@ export class LoginComponent {
           let typeOfMessage: 'success' | 'error' = 'error';
 
           if (
-            error &&
-            typeof error.error === 'object' &&
-            error.error !== null &&
-            error.error.mensaje === 'Login exitoso'
-          ) {
-            messageToDisplay = error.error.mensaje;
-            typeOfMessage = 'success';
-            if (typeof window !== 'undefined' && localStorage) {
-              localStorage.setItem('usuarioAdmin', JSON.stringify(error.error.user));
-            }
-            setTimeout(() => {
-              this.fadeOut = 'out';
-            }, 300);
-          } else if (
             error &&
             typeof error.error === 'object' &&
             error.error !== null &&
@@ -103,7 +86,9 @@ export class LoginComponent {
 
   // Se ejecuta cuando termina la animación
   onFadeOutDone() {
-    this.router.navigate(['/dashboard']);
+    if (this.messageType === 'success') {
+      this.router.navigate(['/dashboard'], { replaceUrl: true });
+    }
   }
 
   addCharacter(char: string) {
